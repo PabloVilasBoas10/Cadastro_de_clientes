@@ -1,6 +1,9 @@
 # Importa os módulos
 from tkinter import *
 from tkinter import ttk
+import sqlite3 as sql
+
+
 
 root = Tk()
 
@@ -14,6 +17,30 @@ class Funcs():
         self.telefone_entry.delete(0, END)
         self.cidade_entry.delete(0, END)
 
+    # Função para conectar com o banco de dados
+    def conecta_bd(self):
+        self.conn = sql.connect("clientes.bd")
+        self.cursor = self.conn.cursor();print("Conectando com o BANCO DE DADOS...")
+    
+    # Função para desconectar o banco de dados
+    def desconecta_bd(self):
+        self.conn.close() ; print("DESCONECTANDO do BANCO DE DADOS")
+
+    # Função para criar o banco de dados
+    def monta_tabela(self):
+        self.conecta_bd();
+        ### Criar tabela
+        self.cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cliente(
+            cod INTEGER PRIMARY KEY,
+            nome_cliente CHAR(40) NOT NULL,
+            telefone INTEGER(20),
+            cidade CHAR(40)
+        )
+        """)
+        self.conn.commit(); print("BANCO DE DADOS criado.")
+        self.desconecta_bd()
+
 class Application(Funcs):
     def __init__(self):
         self.root = root
@@ -21,6 +48,7 @@ class Application(Funcs):
         self.frames_da_tela()
         self.widgets_de_frame_1()
         self.lista_frame_2()
+        self.monta_tabela()
         root.mainloop()
     
     def tela(self):
