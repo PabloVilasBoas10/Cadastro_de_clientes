@@ -41,6 +41,31 @@ class Funcs():
         self.conn.commit(); print("BANCO DE DADOS criado.")
         self.desconecta_bd()
 
+    # Função para adicionar clientes
+    def add_cliente(self):
+        self.codigo = self.codigo_entry.get()
+        self.nome = self.nome_entry.get()
+        self.telefone = self.telefone_entry.get()
+        self.cidade = self.cidade_entry.get()
+        self.conecta_bd()
+
+        self.cursor.execute(""" INSERT INTO cliente (nome_cliente, telefone, cidade) 
+            VALUES (?, ?, ?) """, (self.nome, self.telefone, self.cidade))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpar_tela()
+
+    # Função de select
+    def select_lista(self):
+        self.listaCli.delete(*self.listaCli.get_children())
+        self.conecta_bd()
+        lista = self.cursor.execute(""" SELECT cod, nome_cliente, telefone, cidade FROM cliente
+            ORDER BY nome_cliente ASC; """)
+        for i in lista:
+            self.listaCli.insert("", END, values=i)
+        self.desconecta_bd()
+
 class Application(Funcs):
     def __init__(self):
         self.root = root
@@ -49,6 +74,7 @@ class Application(Funcs):
         self.widgets_de_frame_1()
         self.lista_frame_2()
         self.monta_tabela()
+        self.select_lista()
         root.mainloop()
     
     def tela(self):
@@ -70,6 +96,7 @@ class Application(Funcs):
         
         # Criação de botão limpar
         self.btn_limpar = Button(self.frame_1, text="Limpar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.limpar_tela)
+        
         self.btn_limpar.place(relx=0.2, rely=0.1, relwidth=0.1, relheight=0.15)
         
         # Criação de botão buscar
@@ -77,7 +104,7 @@ class Application(Funcs):
         self.btn_buscar.place(relx=0.305, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # Criação de botão novo
-        self.btn_novo = Button(self.frame_1, text="Novo", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"))
+        self.btn_novo = Button(self.frame_1, text="Novo", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.add_cliente)
         self.btn_novo.place(relx=0.6, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # Criação de botão alterar
