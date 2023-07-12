@@ -11,7 +11,7 @@ root = Tk()
 class Funcs():
 
     # Definindo a função de limpar os campos de input
-    def limpar_tela(self):
+    def limpar_cliente(self):
         self.codigo_entry.delete(0, END)
         self.nome_entry.delete(0, END)
         self.telefone_entry.delete(0, END)
@@ -41,20 +41,23 @@ class Funcs():
         self.conn.commit(); print("BANCO DE DADOS criado.")
         self.desconecta_bd()
 
-    # Função para adicionar clientes
-    def add_cliente(self):
+    # Função para salvar as variáveis que vão se repetir várias vezes
+    def variaveis(self):
         self.codigo = self.codigo_entry.get()
         self.nome = self.nome_entry.get()
         self.telefone = self.telefone_entry.get()
         self.cidade = self.cidade_entry.get()
-        self.conecta_bd()
 
+    # Função para adicionar clientes
+    def add_cliente(self):
+        self.variaveis()
+        self.conecta_bd()
         self.cursor.execute(""" INSERT INTO cliente (nome_cliente, telefone, cidade) 
             VALUES (?, ?, ?) """, (self.nome, self.telefone, self.cidade))
         self.conn.commit()
         self.desconecta_bd()
         self.select_lista()
-        self.limpar_tela()
+        self.limpar_cliente()
 
     # Função de select
     def select_lista(self):
@@ -65,6 +68,38 @@ class Funcs():
         for i in lista:
             self.listaCli.insert("", END, values=i)
         self.desconecta_bd()
+
+    # Função de double click
+    def double_click(self, event):
+        self.limpar_cliente()
+        self.listaCli.selection()
+
+        for n in self.listaCli.selection():
+            col1, col2, col3, col4 = self.listaCli.item(n, "values")
+            self.codigo_entry.insert(END, col1)
+            self.nome_entry.insert(END, col2)
+            self.telefone_entry.insert(END, col3)
+            self.cidade_entry.insert(END, col4)
+    
+    # Função de deletar cliente
+    def delete_cliente(self):
+        self.variaveis()
+        self.conecta_bd()
+        self.cursor.execute("""DELETE FROM cliente WHERE cod = ? """, (self.codigo))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.limpar_cliente()
+        self.select_lista()
+
+    # Função de alterar cliente
+    def alterar_cliente(self):
+        self.variaveis()
+        self.conecta_bd()
+        self.cursor.execute("""UPDATE cliente SET nome_cliente = ?, telefone = ?, cidade = ? WHERE cod = ?""", (self.nome, self.telefone, self.cidade, self.codigo))
+        self.conn.commit()
+        self.desconecta_bd()
+        self.select_lista()
+        self.limpar_cliente()
 
 class Application(Funcs):
     def __init__(self):
@@ -95,7 +130,7 @@ class Application(Funcs):
     def widgets_de_frame_1(self):
         
         # Criação de botão limpar
-        self.btn_limpar = Button(self.frame_1, text="Limpar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.limpar_tela)
+        self.btn_limpar = Button(self.frame_1, text="Limpar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.limpar_cliente)
         
         self.btn_limpar.place(relx=0.2, rely=0.1, relwidth=0.1, relheight=0.15)
         
@@ -108,11 +143,11 @@ class Application(Funcs):
         self.btn_novo.place(relx=0.6, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # Criação de botão alterar
-        self.btn_alterar = Button(self.frame_1, text="Alterar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"))
+        self.btn_alterar = Button(self.frame_1, text="Alterar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.alterar_cliente)
         self.btn_alterar.place(relx=0.705, rely=0.1, relwidth=0.1, relheight=0.15)
             
         # Criação de botão Apagar
-        self.btn_apagar = Button(self.frame_1, text="Apagar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"))
+        self.btn_apagar = Button(self.frame_1, text="Apagar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.delete_cliente)
         self.btn_apagar.place(relx=0.810, rely=0.1, relwidth=0.1, relheight=0.15)
             
         # Criação da label e entrada do código
@@ -168,7 +203,7 @@ class Application(Funcs):
         self.scrolLista = Scrollbar(self.frame_2, orient="vertical")
         self.listaCli.configure(yscrollcommand=self.scrolLista.set) # setando na tela
         self.scrolLista.place(relx=0.955, rely=0.1, relwidth=0.04, relheight=0.85)
-
+        self.listaCli.bind("<Double-1>", self.double_click)
 
 
 
