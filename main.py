@@ -110,6 +110,7 @@ class Application(Funcs):
         self.lista_frame_2()
         self.monta_tabela()
         self.select_lista()
+        self.menus()
         root.mainloop()
     
     def tela(self):
@@ -205,6 +206,19 @@ class Application(Funcs):
         self.scrolLista.place(relx=0.955, rely=0.1, relwidth=0.04, relheight=0.85)
         self.listaCli.bind("<Double-1>", self.double_click)
 
+    def menus(self):
+        menubar = Menu(self.root)
+        self.root.config(menu=menubar)
+        filemenu = Menu(menubar)
+        filemenu2 = Menu(menubar)
+
+        def quit(): self.root.destroy()
+
+        menubar.add_cascade(label="Opções", menu=filemenu)
+        menubar.add_cascade(label="Funções", menu=filemenu2)
+
+        filemenu.add_command(label="Sair", command=quit)
+        filemenu2.add_command(label="Limpar Cliente", command=self.limpar_cliente)
 
 
 Application()
