@@ -2,10 +2,46 @@
 from tkinter import *
 from tkinter import ttk
 import sqlite3 as sql
-
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import  TTFont
+from reportlab.platypus import SimpleDocTemplate, Image
+import webbrowser
 
 root = Tk()
+
+class Relatorios():
+    def print_cliente(self):
+        webbrowser.open("cliente.pdf")
+
+    def gera_relatorio_cliente(self):
+        self.c = canvas.Canvas("cliente.pdf")
+        
+        self.codigo_relatorio = self.codigo_entry.get()
+        self.nome_relatorio = self.nome_entry.get()
+        self.telefone_relatorio = self.telefone_entry.get()
+        self.cidade_relatorio = self.cidade_entry.get()
+
+        self.c.setFont("Helvetica-Bold", 24)
+        self.c.drawString(200, 790, "Ficha do Cliente")
+        self.c.setFont("Helvetica-Bold", 18)
+        self.c.drawString(50, 700, "Código: ")
+        self.c.drawString(50, 670, "Nome: ")
+        self.c.drawString(50, 640, "Telefone: ")
+        self.c.drawString(50, 610, "Cidade: ")
+        
+        self.c.setFont("Helvetica", 18)
+        self.c.drawString(150, 700, self.codigo_relatorio)
+        self.c.drawString(150, 670, self.nome_relatorio)
+        self.c.drawString(150, 640, self.telefone_relatorio)
+        self.c.drawString(150, 610, self.cidade_relatorio)
+
+        self.c.rect(20, 580, 550, 250, fill=False, stroke=True)
+
+        self.c.showPage()
+        self.c.save()
+        self.print_cliente()
 
 
 class Funcs():
@@ -28,7 +64,7 @@ class Funcs():
 
     # Função para criar o banco de dados
     def monta_tabela(self):
-        self.conecta_bd();
+        self.conecta_bd()
         ### Criar tabela
         self.cursor.execute("""
         CREATE TABLE IF NOT EXISTS cliente(
@@ -101,7 +137,24 @@ class Funcs():
         self.select_lista()
         self.limpar_cliente()
 
-class Application(Funcs):
+    # Função de buscar cliente
+    def buscar_cliente(self):
+        self.conecta_bd()
+        self.listaCli.delete(*self.listaCli.get_children())
+        self.nome_entry.insert(END, "%")
+        nome = self.nome_entry.get()
+        self.cursor.execute("""
+            SELECT cod, nome_cliente, telefone, cidade FROM cliente
+            WHERE nome_cliente LIKE '%s' ORDER BY nome_cliente ASC""" % nome)
+        
+        buscanomeCli = self.cursor.fetchall()
+        for i in buscanomeCli:
+            self.listaCli.insert("", END, values=i)
+        self.limpar_cliente()
+        self.desconecta_bd()
+
+
+class Application(Funcs, Relatorios):
     def __init__(self):
         self.root = root
         self.tela()
@@ -136,7 +189,7 @@ class Application(Funcs):
         self.btn_limpar.place(relx=0.2, rely=0.1, relwidth=0.1, relheight=0.15)
         
         # Criação de botão buscar
-        self.btn_buscar = Button(self.frame_1, text="Buscar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"))
+        self.btn_buscar = Button(self.frame_1, text="Buscar", border=2, bg="#7e81b8", fg="white", font=("Verdana", 8, "bold"), command=self.buscar_cliente)
         self.btn_buscar.place(relx=0.305, rely=0.1, relwidth=0.1, relheight=0.15)
 
         # Criação de botão novo
@@ -215,11 +268,12 @@ class Application(Funcs):
         def quit(): self.root.destroy()
 
         menubar.add_cascade(label="Opções", menu=filemenu)
-        menubar.add_cascade(label="Funções", menu=filemenu2)
+        menubar.add_cascade(label="Relatórios", menu=filemenu2)
 
         filemenu.add_command(label="Sair", command=quit)
-        filemenu2.add_command(label="Limpar Cliente", command=self.limpar_cliente)
+        filemenu.add_command(label="Limpar Cliente", command=self.limpar_cliente)
 
+        filemenu2.add_command(label="Ficha do Cliente", command=self.gera_relatorio_cliente)
 
 Application()
         
